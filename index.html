@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SteamTime Clicker</title>
+    <style>
+        :root {
+            --primary: #1a237e;
+            --secondary: #00bcd4;
+            --accent: #ff5722;
+            --background: #121212;
+            --text: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --error: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            width: 40px;
+            margin-right: 10px;
+        }
+
+        .auth-section {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: black;
+        }
+
+        .btn-accent {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .main-content {
+            display: none;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        .clicker-section {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .clicker-display {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .clicker-btn {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            font-size: 24px;
+            border: none;
+            cursor: pointer;
+            margin: 20px auto;
+            transition: all 0.1s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .clicker-btn:active {
+            transform: scale(0.95);
+        }
+
+        .clicker-btn::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .clicker-btn:active::after {
+            opacity: 1;
+        }
+
+        .stats-section {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .upgrades-section {
+            grid-column: 1 / -1;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .upgrades-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .upgrade-card {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s;
+            border-left: 4px solid var(--primary);
+        }
+
+        .upgrade-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .upgrade-card h3 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+
+        .upgrade-card p {
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .upgrade-card .price {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .upgrade-card .owned {
+            color: var(--success);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: var(--secondary);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #333;
+            color: var(--text);
+        }
+
+        .error-message {
+            color: var(--error);
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .success-message {
+            color: var(--success);
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid var(--secondary);
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .leaderboard {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .leaderboard th, .leaderboard td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        .leaderboard th {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .leaderboard tr:nth-child(even) {
+            background-color: #2a2a2a;
+        }
+
+        .leaderboard tr:hover {
+            background-color: #333;
+        }
+
+        .skin-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .skin-card {
+            width: 100px;
+            height: 100px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .skin-card:hover {
+            transform: scale(1.05);
+        }
+
+        .skin-card.selected {
+            border-color: var(--secondary);
+        }
+
+        .skin-card img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+
+        .skin-card .skin-name {
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--card-bg);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: translateX(150%);
+            transition: transform 0.3s;
+            z-index: 1001;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .notification.error {
+            border-left: 4px solid var(--error);
+        }
+
+        .notification.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .notification .close-notification {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        .admin-panel {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .admin-panel h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .promo-code-input {
+            flex-grow: 1;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #333;
+            color: var(--text);
+        }
+
+        .promo-list {
+            margin-top: 15px;
+        }
+
+        .promo-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px solid #444;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .clicker-btn {
+                width: 150px;
+                height: 150px;
+            }
+
+            .upgrades-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Анимации */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Скины для кнопки кликера */
+        .skin-default {
+            background: linear-gradient(135deg, #1a237e, #00bcd4);
+        }
+
+        .skin-gold {
+            background: linear-gradient(135deg, #ffd700, #ff9800);
+        }
+
+        .skin-diamond {
+            background: linear-gradient(135deg, #b9f2ff, #00bcd4);
+        }
+
+        .skin-legendary {
+            background: linear-gradient(135deg, #9c27b0, #ff5722);
+        }
+
+        .skin-epic {
+            background: linear-gradient(135deg, #673ab7, #e91e63);
+        }
+
+        /* Прогресс бар уровня */
+        .level-progress {
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .level-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+
+        /* Иконки */
+        .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span>SteamTime Clicker</span>
+            </div>
+            <div class="auth-section">
+                <button id="loginBtn" class="btn btn-primary">Вход</button>
+                <button id="registerBtn" class="btn btn-secondary">Регистрация</button>
+            </div>
+        </header>
+
+        <div id="authContainer">
+            <div class="clicker-section" style="text-align: center; padding: 50px 0;">
+                <h2>Добро пожаловать в SteamTime Clicker!</h2>
+                <p>Пожалуйста, войдите или зарегистрируйтесь, чтобы начать играть</p>
+            </div>
+        </div>
+
+        <div id="gameContainer" class="main-content">
+            <div class="clicker-section">
+                <div class="clicker-display">
+                    <h2 id="usernameDisplay"></h2>
+                    <div class="stats-item">
+                        <span>Уровень: <span id="levelDisplay">1</span></span>
+                        <span id="xpDisplay">0/100 XP</span>
+                    </div>
+                    <div class="level-progress">
+                        <div id="levelProgressBar" class="level-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <button id="clickerBtn" class="clicker-btn skin-default">
+                    <span id="clicksPerClick">1</span>
+                    <span>кликов</span>
+                </button>
+                
+                <div class="stats-item">
+                    <span>Всего кликов:</span>
+                    <span id="totalClicksDisplay">0</span>
+                </div>
+                <div class="stats-item">
+                    <span>Кликов в секунду:</span>
+                    <span id="clicksPerSecondDisplay">0</span>
+                </div>
+                <div class="stats-item">
+                    <span>Баланс:</span>
+                    <span id="balanceDisplay">0</span> <span class="currency">STC</span>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <h3>Статистика</h3>
+                <div class="stats-item">
+                    <span>Время игры:</span>
+                    <span id="playTimeDisplay">00:00:00</span>
+                </div>
+                <div class="stats-item">
+                    <span>Максимальный кликов/сек:</span>
+                    <span id="maxCpsDisplay">0</span>
+                </div>
+                <div class="stats-item">
+                    <span>Всего заработано:</span>
+                    <span id="totalEarnedDisplay">0</span> STC
+                </div>
+                <div class="stats-item">
+                    <span>Улучшений куплено:</span>
+                    <span id="upgradesBoughtDisplay">0</span>
+                </div>
+                <div class="stats-item">
+                    <span>Дата регистрации:</span>
+                    <span id="registerDateDisplay">-</span>
+                </div>
+
+                <button id="settingsBtn" class="btn btn-secondary" style="margin-top: 20px; width: 100%;">
+                    Настройки
+                </button>
+                <button id="promoBtn" class="btn btn-accent" style="margin-top: 10px; width: 100%;">
+                    Ввести промокод
+                </button>
+                <button id="adminBtn" class="btn btn-primary" style="margin-top: 10px; width: 100%; display: none;">
+                    Админ-панель
+                </button>
+            </div>
+
+            <div class="upgrades-section">
+                <div class="tabs">
+                    <div class="tab active" data-tab="clickUpgrades">Улучшения кликов</div>
+                    <div class="tab" data-tab="autoClickers">Автокликеры</div>
+                    <div class="tab" data-tab="multipliers">Множители</div>
+                    <div class="tab" data-tab="skins">Скины</div>
+                    <div class="tab" data-tab="leaderboard">Таблица лидеров</div>
+                </div>
+
+                <div class="tab-content active" id="clickUpgrades">
+                    <div class="upgrades-grid" id="clickUpgradesGrid"></div>
+                </div>
+
+                <div class="tab-content" id="autoClickers">
+                    <div class="upgrades-grid" id="autoClickersGrid"></div>
+                </div>
+
+                <div class="tab-content" id="multipliers">
+                    <div class="upgrades-grid" id="multipliersGrid"></div>
+                </div>
+
+                <div class="tab-content" id="skins">
+                    <h3>Доступные скины</h3>
+                    <p>Скины разблокируются по достижении определенных уровней</p>
+                    <div class="skin-selector" id="skinSelector"></div>
+                </div>
+
+                <div class="tab-content" id="leaderboard">
+                    <h3>Топ игроков</h3>
+                    <div class="tabs">
+                        <div class="tab active" data-leaderboard="totalClicks">По кликам</div>
+                        <div class="tab" data-leaderboard="level">По уровню</div>
+                        <div class="tab" data-leaderboard="balance">По балансу</div>
+                    </div>
+                    <table class="leaderboard">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Игрок</th>
+                                <th id="leaderboardMetric">Кликов</th>
+                                <th>Уровень</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody">
+                            <!-- Лидерборд будет заполнен динамически -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальные окна -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Вход в аккаунт</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsername">Имя пользователя</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Пароль</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <div id="loginError" class="error-message"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 15px;">Войти</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Регистрация аккаунта</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerUsername">Имя пользователя (мин. 3 символа)</label>
+                    <input type="text" id="registerUsername" minlength="3" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Пароль (мин. 6 символов)</label>
+                    <input type="password" id="registerPassword" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerConfirmPassword">Подтвердите пароль</label>
+                    <input type="password" id="registerConfirmPassword" required>
+                </div>
+                <div id="registerError" class="error-message"></div>
+                <div id="registerSuccess" class="success-message"></div>
+                <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 15px;">Зарегистрироваться</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Настройки</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="volumeControl">Громкость звуков</label>
+                <input type="range" id="volumeControl" min="0" max="100" value="50">
+            </div>
+            <div class="form-group">
+                <label for="notificationsToggle">Уведомления</label>
+                <select id="notificationsToggle" class="form-control">
+                    <option value="true">Включены</option>
+                    <option value="false">Выключены</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="themeSelect">Тема</label>
+                <select id="themeSelect" class="form-control">
+                    <option value="dark">Темная</option>
+                    <option value="light">Светлая</option>
+                    <option value="blue">Синяя</option>
+                </select>
+            </div>
+            <button id="saveSettingsBtn" class="btn btn-primary" style="width: 100%; margin-top: 15px;">Сохранить настройки</button>
+            <button id="logoutBtn" class="btn btn-accent" style="width: 100%; margin-top: 10px;">Выйти</button>
+        </div>
+    </div>
+
+    <div id="promoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Активация промокода</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="promoCodeInput">Введите промокод</label>
+                <input type="text" id="promoCodeInput" placeholder="STEAMTIME2023">
+            </div>
+            <div id="promoError" class="error-message"></div>
+            <div id="promoSuccess" class="success-message"></div>
+            <button id="activatePromoBtn" class="btn btn-accent" style="width: 100%; margin-top: 15px;">Активировать</button>
+        </div>
+    </div>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Админ-панель</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div class="admin-panel">
+                <h3>Управление игроками</h3>
+                <div class="form-group">
+                    <label for="adminUsername">Имя пользователя</label>
+                    <input type="text" id="adminUsername">
+                </div>
+                <div class="admin-controls">
+                    <button id="addClicksBtn" class="btn btn-primary">Добавить клики</button>
+                    <button id="addBalanceBtn" class="btn btn-primary">Добавить баланс</button>
+                    <button id="resetPlayerBtn" class="btn btn-accent">Сбросить игрока</button>
+                </div>
+                <div class="form-group">
+                    <label for="adminAmount">Количество</label>
+                    <input type="number" id="adminAmount" min="1" value="100">
+                </div>
+                <div id="adminPlayerError" class="error-message"></div>
+                <div id="adminPlayerSuccess" class="success-message"></div>
+            </div>
+            
+            <div class="admin-panel">
+                <h3>Управление промокодами</h3>
+                <div class="admin-controls">
+                    <input type="text" id="newPromoCode" class="promo-code-input" placeholder="Новый промокод">
+                    <button id="generatePromoBtn" class="btn btn-secondary">Сгенерировать</button>
+                </div>
+                <div class="form-group">
+                    <label for="promoRewardType">Тип награды</label>
+                    <select id="promoRewardType" class="form-control">
+                        <option value="clicks">Клики</option>
+                        <option value="balance">Баланс</option>
+                        <option value="multiplier">Множитель</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="promoRewardValue">Значение награды</label>
+                    <input type="number" id="promoRewardValue" min="1" value="100">
+                </div>
+                <div class="form-group">
+                    <label for="promoExpiry">Срок действия (дни)</label>
+                    <input type="number" id="promoExpiry" min="1" value="7">
+                </div>
+                <button id="createPromoBtn" class="btn btn-primary">Создать промокод</button>
+                <div id="adminPromoError" class="error-message"></div>
+                <div id="adminPromoSuccess" class="success-message"></div>
+                
+                <h4 style="margin-top: 20px;">Активные промокоды</h4>
+                <div class="promo-list" id="promoList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification">
+        <button class="close-notification">&times;</button>
+        <div id="notificationMessage"></div>
+    </div>
+
+    <script>
+        // Конфигурация JSONBin.io
+        const JSONBIN_BASE_URL = "https://api.jsonbin.io/v3";
+        const JSONBIN_API_KEY = "$2a$10$ZT/ZC5qTCUjdKDR7WAZFn.4PNbI1n7b19vtU0gJtvj18Baa3XzWwu"; // Пример ключа, замените на свой
+        const JSONBIN_BIN_ID = "681dc0ae8a456b79669a42e9"; // Пример ID бина, замените на свой
+
+        // Глобальные переменные игры
+        let gameData = {
+            clicks: 0,
+            totalClicks: 0,
+            balance: 0,
+            totalEarned: 0,
+            level: 1,
+            xp: 0,
+            xpToNextLevel: 100,
+            upgrades: {},
+            autoClickers: {},
+            multipliers: {},
+            settings: {
+                volume: 50,
+                notifications: true,
+                theme: 'dark',
+                currentSkin: 'default'
+            },
+            playTime: 0,
+            lastUpdate: Date.now(),
+            isAdmin: false
+        };
+
+        let userData = {
+            username: '',
+            password: '',
+            registerDate: '',
+            lastLogin: ''
+        };
+
+        let allPlayersData = [];
+        let promoCodes = [];
+        let autoClickerInterval;
+        let playTimeInterval;
+        let currentTab = 'clickUpgrades';
+        let currentLeaderboard = 'totalClicks';
+
+        // DOM элементы
+        const authContainer = document.getElementById('authContainer');
+        const gameContainer = document.getElementById('gameContainer');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const loginModal = document.getElementById('loginModal');
+        const registerModal = document.getElementById('registerModal');
+        const settingsModal = document.getElementById('settingsModal');
+        const promoModal = document.getElementById('promoModal');
+        const adminModal = document.getElementById('adminModal');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const clickerBtn = document.getElementById('clickerBtn');
+        const totalClicksDisplay = document.getElementById('totalClicksDisplay');
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const clicksPerSecondDisplay = document.getElementById('clicksPerSecondDisplay');
+        const maxCpsDisplay = document.getElementById('maxCpsDisplay');
+        const playTimeDisplay = document.getElementById('playTimeDisplay');
+        const upgradesBoughtDisplay = document.getElementById('upgradesBoughtDisplay');
+        const registerDateDisplay = document.getElementById('registerDateDisplay');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const xpDisplay = document.getElementById('xpDisplay');
+        const levelProgressBar = document.getElementById('levelProgressBar');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        const clicksPerClick = document.getElementById('clicksPerClick');
+        const clickUpgradesGrid = document.getElementById('clickUpgradesGrid');
+        const autoClickersGrid = document.getElementById('autoClickersGrid');
+        const multipliersGrid = document.getElementById('multipliersGrid');
+        const skinSelector = document.getElementById('skinSelector');
+        const leaderboardBody = document.getElementById('leaderboardBody');
+        const leaderboardMetric = document.getElementById('leaderboardMetric');
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notificationMessage');
+        const adminBtn = document.getElementById('adminBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const promoBtn = document.getElementById('promoBtn');
+        const volumeControl = document.getElementById('volumeControl');
+        const notificationsToggle = document.getElementById('notificationsToggle');
+        const themeSelect = document.getElementById('themeSelect');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const promoCodeInput = document.getElementById('promoCodeInput');
+        const activatePromoBtn = document.getElementById('activatePromoBtn');
+        const adminUsername = document.getElementById('adminUsername');
+        const adminAmount = document.getElementById('adminAmount');
+        const addClicksBtn = document.getElementById('addClicksBtn');
+        const addBalanceBtn = document.getElementById('addBalanceBtn');
+        const resetPlayerBtn = document.getElementById('resetPlayerBtn');
+        const newPromoCode = document.getElementById('newPromoCode');
+        const generatePromoBtn = document.getElementById('generatePromoBtn');
+        const promoRewardType = document.getElementById('promoRewardType');
+        const promoRewardValue = document.getElementById('promoRewardValue');
+        const promoExpiry = document.getElementById('promoExpiry');
+        const createPromoBtn = document.getElementById('createPromoBtn');
+        const promoList = document.getElementById('promoList');
+
+        // Улучшения
+        const upgrades = {
+            // Улучшения кликов
+            clickUpgrade1: {
+                id: 'clickUpgrade1',
+                name: 'Улучшенный палец',
+                description: 'Увеличивает количество кликов за нажатие на 1',
+                price: 10,
+                basePrice: 10,
+                priceIncrease: 1.15,
+                maxLevel: 50,
+                effect: 1,
+                type: 'click'
+            },
+            clickUpgrade2: {
+                id: 'clickUpgrade2',
+                name: 'Стальной палец',
+                description: 'Увеличивает количество кликов за нажатие на 2',
+                price: 50,
+                basePrice: 50,
+                priceIncrease: 1.2,
+                maxLevel: 40,
+                effect: 2,
+                type: 'click',
+                requiredLevel: 3
+            },
+            clickUpgrade3: {
+                id: 'clickUpgrade3',
+                name: 'Титановый палец',
+                description: 'Увеличивает количество кликов за нажатие на 5',
+                price: 200,
+                basePrice: 200,
+                priceIncrease: 1.25,
+                maxLevel: 30,
+                effect: 5,
+                type: 'click',
+                requiredLevel: 5
+            },
+            clickUpgrade4: {
+                id: 'clickUpgrade4',
+                name: 'Алмазный палец',
+                description: 'Увеличивает количество кликов за нажатие на 10',
+                price: 1000,
+                basePrice: 1000,
+                priceIncrease: 1.3,
+                maxLevel: 20,
+                effect: 10,
+                type: 'click',
+                requiredLevel: 10
+            },
+            clickUpgrade5: {
+                id: 'clickUpgrade5',
+                name: 'Мифический палец',
+                description: 'Увеличивает количество кликов за нажатие на 25',
+                price: 5000,
+                basePrice: 5000,
+                priceIncrease: 1.35,
+                maxLevel: 10,
+                effect: 25,
+                type: 'click',
+                requiredLevel: 15
+            },
+            
+            // Автокликеры
+            autoClicker1: {
+                id: 'autoClicker1',
+                name: 'Новичок',
+                description: 'Автоматически кликает 1 раз в секунду',
+                price: 100,
+                basePrice: 100,
+                priceIncrease: 1.2,
+                maxLevel: 20,
+                effect: 1,
+                type: 'auto'
+            },
+            autoClicker2: {
+                id: 'autoClicker2',
+                name: 'Любитель',
+                description: 'Автоматически кликает 2 раза в секунду',
+                price: 500,
+                basePrice: 500,
+                priceIncrease: 1.25,
+                maxLevel: 15,
+                effect: 2,
+                type: 'auto',
+                requiredLevel: 3
+            },
+            autoClicker3: {
+                id: 'autoClicker3',
+                name: 'Профессионал',
+                description: 'Автоматически кликает 5 раз в секунду',
+                price: 2000,
+                basePrice: 2000,
+                priceIncrease: 1.3,
+                maxLevel: 10,
+                effect: 5,
+                type: 'auto',
+                requiredLevel: 5
+            },
+            autoClicker4: {
+                id: 'autoClicker4',
+                name: 'Эксперт',
+                description: 'Автоматически кликает 10 раз в секунду',
+                price: 10000,
+                basePrice: 10000,
+                priceIncrease: 1.35,
+                maxLevel: 5,
+                effect: 10,
+                type: 'auto',
+                requiredLevel: 10
+            },
+            
+            // Множители
+            multiplier1: {
+                id: 'multiplier1',
+                name: 'Малый множитель',
+                description: 'Увеличивает все ваши клики на 10%',
+                price: 500,
+                basePrice: 500,
+                priceIncrease: 1.5,
+                maxLevel: 10,
+                effect: 0.1,
+                type: 'multiplier',
+                requiredLevel: 2
+            },
+            multiplier2: {
+                id: 'multiplier2',
+                name: 'Средний множитель',
+                description: 'Увеличивает все ваши клики на 25%',
+                price: 2500,
+                basePrice: 2500,
+                priceIncrease: 1.6,
+                maxLevel: 8,
+                effect: 0.25,
+                type: 'multiplier',
+                requiredLevel: 5
+            },
+            multiplier3: {
+                id: 'multiplier3',
+                name: 'Большой множитель',
+                description: 'Увеличивает все ваши клики на 50%',
+                price: 10000,
+                basePrice: 10000,
+                priceIncrease: 1.7,
+                maxLevel: 5,
+                effect: 0.5,
+                type: 'multiplier',
+                requiredLevel: 10
+            },
+            multiplier4: {
+                id: 'multiplier4',
+                name: 'Огромный множитель',
+                description: 'Увеличивает все ваши клики на 100%',
+                price: 50000,
+                basePrice: 50000,
+                priceIncrease: 1.8,
+                maxLevel: 3,
+                effect: 1,
+                type: 'multiplier',
+                requiredLevel: 15
+            }
+        };
+
+        // Скины
+        const skins = [
+            { id: 'default', name: 'Стандартный', levelRequired: 1, class: 'skin-default' },
+            { id: 'gold', name: 'Золотой', levelRequired: 5, class: 'skin-gold' },
+            { id: 'diamond', name: 'Алмазный', levelRequired: 10, class: 'skin-diamond' },
+            { id: 'epic', name: 'Эпический', levelRequired: 15, class: 'skin-epic' },
+            { id: 'legendary', name: 'Легендарный', levelRequired: 20, class: 'skin-legendary' }
+        ];
+
+        // Инициализация игры
+        async function initGame() {
+            // Загрузка данных игроков
+            await loadAllPlayers();
+            
+            // Проверка, есть ли сохраненный пользователь
+            const savedUser = localStorage.getItem('steamtime_user');
+            if (savedUser) {
+                try {
+                    const user = JSON.parse(savedUser);
+                    await login(user.username, user.password, true);
+                } catch (e) {
+                    showNotification('Ошибка загрузки сохраненного пользователя', 'error');
+                }
+            }
+            
+            setupEventListeners();
+            renderSkins();
+        }
+
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            // Кнопки авторизации
+            loginBtn.addEventListener('click', () => loginModal.style.display = 'flex');
+            registerBtn.addEventListener('click', () => registerModal.style.display = 'flex');
+            
+            // Закрытие модальных окон
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.closest('.modal').style.display = 'none';
+                });
+            });
+            
+            // Клик по кнопке кликера
+            clickerBtn.addEventListener('click', handleClick);
+            
+            // Формы авторизации
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                await login(username, password);
+            });
+            
+            registerForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('registerUsername').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('registerConfirmPassword').value;
+                
+                if (password !== confirmPassword) {
+                    document.getElementById('registerError').textContent = 'Пароли не совпадают';
+                    return;
+                }
+                
+                await register(username, password);
+            });
+            
+            // Табы улучшений
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    if (this.dataset.tab) {
+                        // Табы улучшений
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                        
+                        this.classList.add('active');
+                        document.getElementById(this.dataset.tab).classList.add('active');
+                        currentTab = this.dataset.tab;
+                    } else if (this.dataset.leaderboard) {
+                        // Табы лидерборда
+                        document.querySelectorAll('[data-leaderboard]').forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                        currentLeaderboard = this.dataset.leaderboard;
+                        updateLeaderboard();
+                        
+                        // Обновляем заголовок метрики
+                        switch(currentLeaderboard) {
+                            case 'totalClicks':
+                                leaderboardMetric.textContent = 'Кликов';
+                                break;
+                            case 'level':
+                                leaderboardMetric.textContent = 'Уровень';
+                                break;
+                            case 'balance':
+                                leaderboardMetric.textContent = 'Баланс';
+                                break;
+                        }
+                    }
+                });
+            });
+            
+            // Кнопки настроек
+            settingsBtn.addEventListener('click', () => {
+                // Заполняем настройки текущими значениями
+                volumeControl.value = gameData.settings.volume;
+                notificationsToggle.value = gameData.settings.notifications;
+                themeSelect.value = gameData.settings.theme;
+                settingsModal.style.display = 'flex';
+            });
+            
+            promoBtn.addEventListener('click', () => promoModal.style.display = 'flex');
+            adminBtn.addEventListener('click', () => adminModal.style.display = 'flex');
+            logoutBtn.addEventListener('click', logout);
+            
+            // Сохранение настроек
+            saveSettingsBtn.addEventListener('click', saveSettings);
+            
+            // Активация промокода
+            activatePromoBtn.addEventListener('click', activatePromoCode);
+            
+            // Админ-панель
+            addClicksBtn.addEventListener('click', () => adminAction('addClicks'));
+            addBalanceBtn.addEventListener('click', () => adminAction('addBalance'));
+            resetPlayerBtn.addEventListener('click', () => adminAction('resetPlayer'));
+            generatePromoBtn.addEventListener('click', generatePromoCode);
+            createPromoBtn.addEventListener('click', createPromoCode);
+            
+            // Закрытие уведомления
+            document.querySelector('.close-notification').addEventListener('click', () => {
+                notification.classList.remove('show');
+            });
+            
+            // Закрытие модальных окон при клике вне их
+            window.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
+        }
+
+        // Функция клика
+        function handleClick() {
+            // Базовые клики
+            let clicksToAdd = 1;
+            
+            // Улучшения кликов
+            for (const upgradeId in gameData.upgrades) {
+                if (gameData.upgrades[upgradeId] > 0 && upgrades[upgradeId].type === 'click') {
+                    clicksToAdd += upgrades[upgradeId].effect * gameData.upgrades[upgradeId];
+                }
+            }
+            
+            // Применение множителей
+            let multiplier = 1;
+            for (const upgradeId in gameData.multipliers) {
+                if (gameData.multipliers[upgradeId] > 0 && upgrades[upgradeId].type === 'multiplier') {
+                    multiplier += upgrades[upgradeId].effect * gameData.multipliers[upgradeId];
+                }
+            }
+            
+            clicksToAdd = Math.floor(clicksToAdd * multiplier);
+            
+            // Добавление кликов и баланса
+            gameData.clicks += clicksToAdd;
+            gameData.totalClicks += clicksToAdd;
+            gameData.balance += clicksToAdd;
+            gameData.totalEarned += clicksToAdd;
+            
+            // Добавление опыта
+            addXP(clicksToAdd);
+            
+            // Обновление интерфейса
+            updateUI();
+            
+            // Анимация кнопки
+            animateClick();
+            
+            // Сохранение игры
+            saveGame();
+        }
+
+        // Анимация клика
+        function animateClick() {
+            const clickEffect = document.createElement('div');
+            clickEffect.className = 'click-effect';
+            clickEffect.textContent = `+${clicksPerClick.textContent}`;
+            clickEffect.style.position = 'absolute';
+            clickEffect.style.color = 'white';
+            clickEffect.style.fontWeight = 'bold';
+            clickEffect.style.fontSize = '16px';
+            clickEffect.style.pointerEvents = 'none';
+            clickEffect.style.animation = 'float 1s ease-out forwards';
+            
+            // Позиционирование относительно кнопки
+            const rect = clickerBtn.getBoundingClientRect();
+            const x = Math.random() * (rect.width - 30);
+            const y = Math.random() * (rect.height - 20);
+            
+            clickEffect.style.left = `${x}px`;
+            clickEffect.style.top = `${y}px`;
+            
+            clickerBtn.appendChild(clickEffect);
+            
+            // Удаление через 1 секунду
+            setTimeout(() => {
+                clickEffect.remove();
+            }, 1000);
+        }
+
+        // Добавление опыта
+        function addXP(amount) {
+            gameData.xp += amount;
+            
+            // Проверка уровня
+            while (gameData.xp >= gameData.xpToNextLevel) {
+                gameData.xp -= gameData.xpToNextLevel;
+                gameData.level++;
+                gameData.xpToNextLevel = Math.floor(gameData.xpToNextLevel * 1.2);
+                
+                showNotification(`Поздравляем! Вы достигли уровня ${gameData.level}`, 'success');
+                checkSkinUnlocks();
+            }
+            
+            // Обновление прогрессбара
+            const xpPercent = (gameData.xp / gameData.xpToNextLevel) * 100;
+            levelProgressBar.style.width = `${xpPercent}%`;
+            
+            xpDisplay.textContent = `${gameData.xp}/${gameData.xpToNextLevel} XP`;
+            levelDisplay.textContent = gameData.level;
+        }
+
+        // Проверка разблокировки скинов
+        function checkSkinUnlocks() {
+            skins.forEach(skin => {
+                if (gameData.level >= skin.levelRequired) {
+                    const skinElement = document.querySelector(`.skin-card[data-skin="${skin.id}"]`);
+                    if (skinElement) {
+                        skinElement.classList.remove('locked');
+                        skinElement.title = '';
+                    }
+                }
+            });
+        }
+
+        // Автокликеры
+        function startAutoClickers() {
+            if (autoClickerInterval) clearInterval(autoClickerInterval);
+            
+            let totalAutoClicks = 0;
+            
+            // Подсчет общего количества автокликов в секунду
+            for (const upgradeId in gameData.autoClickers) {
+                if (gameData.autoClickers[upgradeId] > 0 && upgrades[upgradeId].type === 'auto') {
+                    totalAutoClicks += upgrades[upgradeId].effect * gameData.autoClickers[upgradeId];
+                }
+            }
+            
+            if (totalAutoClicks > 0) {
+                autoClickerInterval = setInterval(() => {
+                    // Применение множителей к автокликам
+                    let multiplier = 1;
+                    for (const upgradeId in gameData.multipliers) {
+                        if (gameData.multipliers[upgradeId] > 0 && upgrades[upgradeId].type === 'multiplier') {
+                            multiplier += upgrades[upgradeId].effect * gameData.multipliers[upgradeId];
+                        }
+                    }
+                    
+                    const clicksToAdd = Math.floor(totalAutoClicks * multiplier);
+                    
+                    gameData.clicks += clicksToAdd;
+                    gameData.totalClicks += clicksToAdd;
+                    gameData.balance += clicksToAdd;
+                    gameData.totalEarned += clicksToAdd;
+                    
+                    addXP(clicksToAdd);
+                    updateUI();
+                }, 1000);
+            }
+            
+            clicksPerSecondDisplay.textContent = totalAutoClicks;
+        }
+
+        // Обновление интерфейса
+        function updateUI() {
+            totalClicksDisplay.textContent = gameData.totalClicks.toLocaleString();
+            balanceDisplay.textContent = gameData.balance.toLocaleString();
+            
+            // Обновление количества кликов за клик
+            let clicksPerClickValue = 1;
+            for (const upgradeId in gameData.upgrades) {
+                if (gameData.upgrades[upgradeId] > 0 && upgrades[upgradeId].type === 'click') {
+                    clicksPerClickValue += upgrades[upgradeId].effect * gameData.upgrades[upgradeId];
+                }
+            }
+            
+            // Применение множителей
+            let multiplier = 1;
+            for (const upgradeId in gameData.multipliers) {
+                if (gameData.multipliers[upgradeId] > 0 && upgrades[upgradeId].type === 'multiplier') {
+                    multiplier += upgrades[upgradeId].effect * gameData.multipliers[upgradeId];
+                }
+            }
+            
+            clicksPerClickValue = Math.floor(clicksPerClickValue * multiplier);
+            clicksPerClick.textContent = clicksPerClickValue;
+            
+            // Обновление улучшений
+            renderUpgrades();
+            
+            // Проверка, можно ли купить улучшения
+            checkUpgradesAffordability();
+        }
+
+        // Рендер улучшений
+        function renderUpgrades() {
+            clickUpgradesGrid.innerHTML = '';
+            autoClickersGrid.innerHTML = '';
+            multipliersGrid.innerHTML = '';
+            
+            let upgradesBought = 0;
+            
+            // Рендер всех улучшений
+            for (const upgradeId in upgrades) {
+                const upgrade = upgrades[upgradeId];
+                const owned = gameData[upgrade.type === 'click' ? 'upgrades' : upgrade.type === 'auto' ? 'autoClickers' : 'multipliers'][upgradeId] || 0;
+                
+                if (owned > 0) upgradesBought += owned;
+                
+                // Проверка уровня для отображения улучшения
+                if (upgrade.requiredLevel && gameData.level < upgrade.requiredLevel) continue;
+                
+                const upgradeCard = document.createElement('div');
+                upgradeCard.className = 'upgrade-card';
+                
+                // Проверка, можно ли купить еще
+                const canBuyMore = owned < upgrade.maxLevel && gameData.balance >= upgrade.price;
+                
+                upgradeCard.innerHTML = `
+                    <h3>${upgrade.name} ${owned > 0 ? `<span class="owned">(куплено: ${owned}/${upgrade.maxLevel})</span>` : ''}</h3>
+                    <p>${upgrade.description}</p>
+                    <p class="price">Цена: ${upgrade.price.toLocaleString()} STC</p>
+                    <button class="btn ${canBuyMore ? 'btn-primary' : 'btn-secondary'}" 
+                            data-id="${upgradeId}" 
+                            ${!canBuyMore ? 'disabled' : ''}>
+                        Купить
+                    </button>
+                `;
+                
+                // Добавление обработчика покупки
+                upgradeCard.querySelector('button').addEventListener('click', () => buyUpgrade(upgradeId));
+                
+                // Добавление в соответствующую секцию
+                if (upgrade.type === 'click') {
+                    clickUpgradesGrid.appendChild(upgradeCard);
+                } else if (upgrade.type === 'auto') {
+                    autoClickersGrid.appendChild(upgradeCard);
+                } else if (upgrade.type === 'multiplier') {
+                    multipliersGrid.appendChild(upgradeCard);
+                }
+            }
+            
+            upgradesBoughtDisplay.textContent = upgradesBought;
+        }
+
+        // Проверка, какие улучшения можно купить
+        function checkUpgradesAffordability() {
+            for (const upgradeId in upgrades) {
+                const upgrade = upgrades[upgradeId];
+                const owned = gameData[upgrade.type === 'click' ? 'upgrades' : upgrade.type === 'auto' ? 'autoClickers' : 'multipliers'][upgradeId] || 0;
+                
+                // Проверка уровня для отображения улучшения
+                if (upgrade.requiredLevel && gameData.level < upgrade.requiredLevel) continue;
+                
+                const canBuyMore = owned < upgrade.maxLevel && gameData.balance >= upgrade.price;
+                const buttons = document.querySelectorAll(`button[data-id="${upgradeId}"]`);
+                
+                buttons.forEach(button => {
+                    button.disabled = !canBuyMore;
+                    button.className = `btn ${canBuyMore ? 'btn-primary' : 'btn-secondary'}`;
+                });
+            }
+        }
+
+        // Покупка улучшения
+        function buyUpgrade(upgradeId) {
+            const upgrade = upgrades[upgradeId];
+            const owned = gameData[upgrade.type === 'click' ? 'upgrades' : upgrade.type === 'auto' ? 'autoClickers' : 'multipliers'][upgradeId] || 0;
+            
+            if (owned >= upgrade.maxLevel) {
+                showNotification('Вы достигли максимального уровня этого улучшения', 'warning');
+                return;
+            }
+            
+            if (gameData.balance >= upgrade.price) {
+                gameData.balance -= upgrade.price;
+                
+                if (upgrade.type === 'click') {
+                    gameData.upgrades[upgradeId] = (gameData.upgrades[upgradeId] || 0) + 1;
+                } else if (upgrade.type === 'auto') {
+                    gameData.autoClickers[upgradeId] = (gameData.autoClickers[upgradeId] || 0) + 1;
+                    startAutoClickers(); // Перезапускаем автокликеры
+                } else if (upgrade.type === 'multiplier') {
+                    gameData.multipliers[upgradeId] = (gameData.multipliers[upgradeId] || 0) + 1;
+                }
+                
+                // Увеличиваем цену для следующей покупки
+                upgrade.price = Math.floor(upgrade.price * upgrade.priceIncrease);
+                
+                showNotification(`Улучшение "${upgrade.name}" куплено!`, 'success');
+                updateUI();
+                saveGame();
+            } else {
+                showNotification('Недостаточно средств для покупки этого улучшения', 'error');
+            }
+        }
+
+        // Рендер скинов
+        function renderSkins() {
+            skinSelector.innerHTML = '';
+            
+            skins.forEach(skin => {
+                const skinCard = document.createElement('div');
+                skinCard.className = `skin-card ${gameData.settings.currentSkin === skin.id ? 'selected' : ''} ${gameData.level < skin.levelRequired ? 'locked' : ''}`;
+                skinCard.dataset.skin = skin.id;
+                
+                if (gameData.level < skin.levelRequired) {
+                    skinCard.title = `Разблокируется на уровне ${skin.levelRequired}`;
+                }
+                
+                skinCard.innerHTML = `
+                    <div class="${skin.class}" style="width: 60px; height: 60px; border-radius: 50%;"></div>
+                    <span class="skin-name">${skin.name}</span>
+                `;
+                
+                skinCard.addEventListener('click', () => {
+                    if (gameData.level >= skin.levelRequired) {
+                        // Снимаем выделение со всех скинов
+                        document.querySelectorAll('.skin-card').forEach(card => card.classList.remove('selected'));
+                        // Выделяем выбранный скин
+                        skinCard.classList.add('selected');
+                        // Меняем скин кнопки
+                        clickerBtn.className = `clicker-btn ${skin.class}`;
+                        // Сохраняем настройки
+                        gameData.settings.currentSkin = skin.id;
+                        saveGame();
+                        showNotification(`Скин "${skin.name}" активирован`, 'success');
+                    } else {
+                        showNotification(`Этот скин разблокируется на уровне ${skin.levelRequired}`, 'warning');
+                    }
+                });
+                
+                skinSelector.appendChild(skinCard);
+            });
+        }
+
+        // Обновление лидерборда
+        async function updateLeaderboard() {
+            await loadAllPlayers();
+            
+            // Сортировка игроков по выбранной метрике
+            const sortedPlayers = [...allPlayersData].sort((a, b) => b.gameData[currentLeaderboard] - a.gameData[currentLeaderboard]);
+            
+            leaderboardBody.innerHTML = '';
+            
+            sortedPlayers.slice(0, 50).forEach((player, index) => {
+                const row = document.createElement('tr');
+                
+                // Выделение текущего игрока
+                if (player.username === userData.username) {
+                    row.style.backgroundColor = '#1a237e';
+                }
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${player.username}</td>
+                    <td>${player.gameData[currentLeaderboard].toLocaleString()}</td>
+                    <td>${player.gameData.level}</td>
+                `;
+                
+                leaderboardBody.appendChild(row);
+            });
+        }
+
+        // Показ уведомления
+        function showNotification(message, type = 'info') {
+            if (!gameData.settings.notifications && type !== 'error') return;
+            
+            notification.className = `notification ${type}`;
+            notificationMessage.textContent = message;
+            notification.classList.add('show');
+            
+            // Автоматическое скрытие через 5 секунд
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        // Сохранение игры
+        async function saveGame() {
+            if (!userData.username) return;
+            
+            // Обновляем время последнего сохранения
+            gameData.lastUpdate = Date.now();
+            
+            try {
+                // Находим текущего игрока в общем списке
+                const playerIndex = allPlayersData.findIndex(p => p.username === userData.username);
+                
+                if (playerIndex !== -1) {
+                    // Обновляем данные игрока
+                    allPlayersData[playerIndex].gameData = gameData;
+                    
+                    // Сохраняем всех игроков
+                    await saveAllPlayers();
+                }
+                
+                // Сохраняем пользователя в локальное хранилище
+                localStorage.setItem('steamtime_user', JSON.stringify({
+                    username: userData.username,
+                    password: userData.password
+                }));
+            } catch (e) {
+                console.error('Ошибка сохранения игры:', e);
+                showNotification('Ошибка сохранения игры', 'error');
+            }
+        }
+
+        // Загрузка всех игроков
+        async function loadAllPlayers() {
+            try {
+                const response = await fetch(`${JSONBIN_BASE_URL}/b/${JSONBIN_BIN_ID}/latest`, {
+                    headers: {
+                        'X-Master-Key': JSONBIN_API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                allPlayersData = data.record.players || [];
+                promoCodes = data.record.promoCodes || [];
+            } catch (e) {
+                console.error('Ошибка загрузки данных игроков:', e);
+                allPlayersData = [];
+                promoCodes = [];
+            }
+        }
+
+        // Сохранение всех игроков
+        async function saveAllPlayers() {
+            try {
+                await fetch(`${JSONBIN_BASE_URL}/b/${JSONBIN_BIN_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'X-Master-Key': JSONBIN_API_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        players: allPlayersData,
+                        promoCodes: promoCodes
+                    })
+                });
+            } catch (e) {
+                console.error('Ошибка сохранения данных игроков:', e);
+                showNotification('Ошибка сохранения данных', 'error');
+            }
+        }
+
+        // Вход в систему
+        async function login(username, password, silent = false) {
+            try {
+                await loadAllPlayers();
+                
+                const player = allPlayersData.find(p => p.username === username && p.password === password);
+                
+                if (player) {
+                    // Успешный вход
+                    userData = {
+                        username: player.username,
+                        password: player.password,
+                        registerDate: player.registerDate,
+                        lastLogin: new Date().toISOString()
+                    };
+                    
+                    gameData = player.gameData;
+                    
+                    // Запуск игры
+                    authContainer.style.display = 'none';
+                    gameContainer.style.display = 'grid';
+                    usernameDisplay.textContent = userData.username;
+                    
+                    // Обновление интерфейса
+                    updateUI();
+                    updateLeaderboard();
+                    
+                    // Запуск таймера игрового времени
+                    if (playTimeInterval) clearInterval(playTimeInterval);
+                    playTimeInterval = setInterval(() => {
+                        gameData.playTime++;
+                        const hours = Math.floor(gameData.playTime / 3600);
+                        const minutes = Math.floor((gameData.playTime % 3600) / 60);
+                        const seconds = gameData.playTime % 60;
+                        playTimeDisplay.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    }, 1000);
+                    
+                    // Запуск автокликеров
+                    startAutoClickers();
+                    
+                    // Проверка админки
+                    adminBtn.style.display = userData.username === 'admin' ? 'block' : 'none';
+                    gameData.isAdmin = userData.username === 'admin';
+                    
+                    // Установка текущего скина
+                    clickerBtn.className = `clicker-btn skin-${gameData.settings.currentSkin || 'default'}`;
+                    
+                    // Форматирование даты регистрации
+                    if (userData.registerDate) {
+                        const date = new Date(userData.registerDate);
+                        registerDateDisplay.textContent = date.toLocaleDateString();
+                    }
+                    
+                    if (!silent) {
+                        showNotification(`Добро пожаловать, ${userData.username}!`, 'success');
+                        loginModal.style.display = 'none';
+                    }
+                    
+                    // Очистка формы
+                    document.getElementById('loginUsername').value = '';
+                    document.getElementById('loginPassword').value = '';
+                    document.getElementById('loginError').textContent = '';
+                } else {
+                    if (!silent) {
+                        document.getElementById('loginError').textContent = 'Неверное имя пользователя или пароль';
+                    }
+                }
+            } catch (e) {
+                console.error('Ошибка входа:', e);
+                if (!silent) {
+                    document.getElementById('loginError').textContent = 'Ошибка входа. Попробуйте позже.';
+                }
+            }
+        }
+
+        // Регистрация
+        async function register(username, password) {
+            try {
+                await loadAllPlayers();
+                
+                // Проверка, существует ли уже пользователь
+                const userExists = allPlayersData.some(p => p.username === username);
+                
+                if (userExists) {
+                    document.getElementById('registerError').textContent = 'Имя пользователя уже занято';
+                    return;
+                }
+                
+                // Создание нового пользователя
+                const newPlayer = {
+                    username,
+                    password,
+                    registerDate: new Date().toISOString(),
+                    lastLogin: new Date().toISOString(),
+                    gameData: {
+                        clicks: 0,
+                        totalClicks: 0,
+                        balance: 0,
+                        totalEarned: 0,
+                        level: 1,
+                        xp: 0,
+                        xpToNextLevel: 100,
+                        upgrades: {},
+                        autoClickers: {},
+                        multipliers: {},
+                        settings: {
+                            volume: 50,
+                            notifications: true,
+                            theme: 'dark',
+                            currentSkin: 'default'
+                        },
+                        playTime: 0,
+                        lastUpdate: Date.now(),
+                        isAdmin: username === 'admin'
+                    }
+                };
+                
+                allPlayersData.push(newPlayer);
+                await saveAllPlayers();
+                
+                document.getElementById('registerError').textContent = '';
+                document.getElementById('registerSuccess').textContent = 'Регистрация прошла успешно!';
+                
+                // Автоматический вход после регистрации
+                setTimeout(() => {
+                    registerModal.style.display = 'none';
+                    login(username, password);
+                }, 1000);
+            } catch (e) {
+                console.error('Ошибка регистрации:', e);
+                document.getElementById('registerError').textContent = 'Ошибка регистрации. Попробуйте позже.';
+            }
+        }
+
+        // Выход из системы
+        function logout() {
+            clearInterval(autoClickerInterval);
+            clearInterval(playTimeInterval);
+            
+            // Сброс интерфейса
+            authContainer.style.display = 'block';
+            gameContainer.style.display = 'none';
+            settingsModal.style.display = 'none';
+            
+            // Очистка локального хранилища
+            localStorage.removeItem('steamtime_user');
+            
+            showNotification('Вы успешно вышли из системы', 'success');
+        }
+
+        // Сохранение настроек
+        function saveSettings() {
+            gameData.settings.volume = parseInt(volumeControl.value);
+            gameData.settings.notifications = notificationsToggle.value === 'true';
+            gameData.settings.theme = themeSelect.value;
+            
+            // Применение темы
+            document.documentElement.style.setProperty('--background', themeSelect.value === 'light' ? '#f5f5f5' : themeSelect.value === 'blue' ? '#0a192f' : '#121212');
+            document.documentElement.style.setProperty('--text', themeSelect.value === 'light' ? '#333' : '#e0e0e0');
+            document.documentElement.style.setProperty('--card-bg', themeSelect.value === 'light' ? '#fff' : themeSelect.value === 'blue' ? '#172a45' : '#1e1e1e');
+            
+            saveGame();
+            showNotification('Настройки сохранены', 'success');
+        }
+
+        // Активация промокода
+        async function activatePromoCode() {
+            const code = promoCodeInput.value.trim();
+            
+            if (!code) {
+                document.getElementById('promoError').textContent = 'Введите промокод';
+                return;
+            }
+            
+            await loadAllPlayers();
+            const promo = promoCodes.find(p => p.code === code && new Date(p.expires) > new Date());
+            
+            if (!promo) {
+                document.getElementById('promoError').textContent = 'Промокод недействителен или истек';
+                return;
+            }
+            
+            // Проверка, был ли уже использован этот промокод
+            if (gameData.usedPromoCodes && gameData.usedPromoCodes.includes(code)) {
+                document.getElementById('promoError').textContent = 'Вы уже использовали этот промокод';
+                return;
+            }
+            
+            // Применение награды
+            switch (promo.rewardType) {
+                case 'clicks':
+                    gameData.clicks += promo.rewardValue;
+                    gameData.totalClicks += promo.rewardValue;
+                    showNotification(`Получено ${promo.rewardValue} кликов от промокода!`, 'success');
+                    break;
+                case 'balance':
+                    gameData.balance += promo.rewardValue;
+                    gameData.totalEarned += promo.rewardValue;
+                    showNotification(`Получено ${promo.rewardValue} STC от промокода!`, 'success');
+                    break;
+                case 'multiplier':
+                    // Добавляем временный множитель
+                    if (!gameData.tempMultipliers) gameData.tempMultipliers = [];
+                    gameData.tempMultipliers.push({
+                        value: promo.rewardValue,
+                        expires: Date.now() + 3600000 // 1 час
+                    });
+                    showNotification(`Активирован множитель x${promo.rewardValue} на 1 час!`, 'success');
+                    break;
+            }
+            
+            // Добавляем промокод в использованные
+            if (!gameData.usedPromoCodes) gameData.usedPromoCodes = [];
+            gameData.usedPromoCodes.push(code);
+            
+            // Обновляем интерфейс
+            updateUI();
+            saveGame();
+            
+            document.getElementById('promoError').textContent = '';
+            document.getElementById('promoSuccess').textContent = 'Промокод успешно активирован!';
+            promoCodeInput.value = '';
+            
+            setTimeout(() => {
+                promoModal.style.display = 'none';
+            }, 1000);
+        }
+
+        // Действия администратора
+        async function adminAction(action) {
+            const username = adminUsername.value.trim();
+            const amount = parseInt(adminAmount.value);
+            
+            if (!username) {
+                document.getElementById('adminPlayerError').textContent = 'Введите имя пользователя';
+                return;
+            }
+            
+            if (isNaN(amount) || amount <= 0) {
+                document.getElementById('adminPlayerError').textContent = 'Введите корректное количество';
+                return;
+            }
+            
+            await loadAllPlayers();
+            const playerIndex = allPlayersData.findIndex(p => p.username === username);
+            
+            if (playerIndex === -1) {
+                document.getElementById('adminPlayerError').textContent = 'Пользователь не найден';
+                return;
+            }
+            
+            const player = allPlayersData[playerIndex];
+            
+            switch (action) {
+                case 'addClicks':
+                    player.gameData.clicks += amount;
+                    player.gameData.totalClicks += amount;
+                    showNotification(`Добавлено ${amount} кликов игроку ${username}`, 'success');
+                    break;
+                case 'addBalance':
+                    player.gameData.balance += amount;
+                    player.gameData.totalEarned += amount;
+                    showNotification(`Добавлено ${amount} STC игроку ${username}`, 'success');
+                    break;
+                case 'resetPlayer':
+                    if (confirm(`Вы уверены, что хотите сбросить прогресс игрока ${username}?`)) {
+                        player.gameData = {
+                            clicks: 0,
+                            totalClicks: 0,
+                            balance: 0,
+                            totalEarned: 0,
+                            level: 1,
+                            xp: 0,
+                            xpToNextLevel: 100,
+                            upgrades: {},
+                            autoClickers: {},
+                            multipliers: {},
+                            settings: player.gameData.settings,
+                            playTime: player.gameData.playTime,
+                            lastUpdate: Date.now(),
+                            isAdmin: player.gameData.isAdmin
+                        };
+                        showNotification(`Прогресс игрока ${username} сброшен`, 'success');
+                    }
+                    break;
+            }
+            
+            // Если изменяем себя, обновляем интерфейс
+            if (username === userData.username) {
+                gameData = player.gameData;
+                updateUI();
+            }
+            
+            await saveAllPlayers();
+            document.getElementById('adminPlayerError').textContent = '';
+            document.getElementById('adminPlayerSuccess').textContent = 'Действие выполнено успешно!';
+            
+            updateLeaderboard();
+        }
+
+        // Генерация промокода
+        function generatePromoCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            
+            for (let i = 0; i < 8; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            
+            newPromoCode.value = result;
+        }
+
+        // Создание промокода
+        async function createPromoCode() {
+            const code = newPromoCode.value.trim();
+            const rewardType = promoRewardType.value;
+            const rewardValue = parseInt(promoRewardValue.value);
+            const expiryDays = parseInt(promoExpiry.value);
+            
+            if (!code) {
+                document.getElementById('adminPromoError').textContent = 'Введите промокод';
+                return;
+            }
+            
+            if (isNaN(rewardValue) || rewardValue <= 0) {
+                document.getElementById('adminPromoError').textContent = 'Введите корректное значение награды';
+                return;
+            }
+            
+            if (isNaN(expiryDays) || expiryDays <= 0) {
+                document.getElementById('adminPromoError').textContent = 'Введите корректный срок действия';
+                return;
+            }
+            
+            await loadAllPlayers();
+            
+            // Проверка, существует ли уже промокод
+            if (promoCodes.some(p => p.code === code)) {
+                document.getElementById('adminPromoError').textContent = 'Такой промокод уже существует';
+                return;
+            }
+            
+            // Добавляем новый промокод
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + expiryDays);
+            
+            promoCodes.push({
+                code,
+                rewardType,
+                rewardValue,
+                createdBy: userData.username,
+                createdAt: new Date().toISOString(),
+                expires: expiryDate.toISOString(),
+                uses: 0
+            });
+            
+            await saveAllPlayers();
+            
+            // Обновляем список промокодов
+            renderPromoList();
+            
+            document.getElementById('adminPromoError').textContent = '';
+            document.getElementById('adminPromoSuccess').textContent = 'Промокод успешно создан!';
+            newPromoCode.value = '';
+        }
+
+        // Рендер списка промокодов
+        function renderPromoList() {
+            promoList.innerHTML = '';
+            
+            promoCodes.forEach(promo => {
+                const promoItem = document.createElement('div');
+                promoItem.className = 'promo-item';
+                
+                const isExpired = new Date(promo.expires) < new Date();
+                
+                promoItem.innerHTML = `
+                    <div>
+                        <strong>${promo.code}</strong> (${isExpired ? 'Истек' : 'Активен'})
+                        <div style="font-size: 12px;">
+                            ${promo.rewardType === 'clicks' ? 'Клики' : promo.rewardType === 'balance' ? 'STC' : 'Множитель'}: ${promo.rewardValue}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 12px;">Использований: ${promo.uses}</div>
+                        <div style="font-size: 12px;">До: ${new Date(promo.expires).toLocaleDateString()}</div>
+                    </div>
+                `;
+                
+                promoList.appendChild(promoItem);
+            });
+        }
+
+        // Запуск игры
+        initGame();
+    </script>
+</body>
+</html>
